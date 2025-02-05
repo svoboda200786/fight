@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 function loaderPicture(path){
     const image = new Image();
     image.src = path;
@@ -495,5 +494,3 @@ window.addEventListener("load", async ()=>{
         
     });        
 })
-
->>>>>>> 7709cbb4991f69c1d590375c38dfedceb4f338e9
