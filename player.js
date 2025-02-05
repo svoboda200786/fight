@@ -189,7 +189,7 @@ class Player{
                 this.currentFrame = 0;
             }
             // Иначе просто обнуляем currentFrame кадра и анимация начнется снова
-            else if(my_action_params.once == false){
+            else if(!my_action_params.once){
                 this.currentFrame = 0;
                 if(!this.stopped && this.x >= 0 && this.x <= canvas.width){
                     this.x += this.dx; // добавляем для плавности перемещение в конце анимации walk
@@ -201,7 +201,7 @@ class Player{
                     }
                 }
             }
-            else if(this.currentAction.split("_")[0] == "block"){
+            else if(!my_action_params.no_return){
                 this.currentFrame = 0;
                 this.doAction('stand' + this.direction);
             }                

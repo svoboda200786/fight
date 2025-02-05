@@ -36,27 +36,28 @@ const actions = ["punch", "jump", "block"];
 // оно просто отсылает к методу классов Player и Enemy
 // start и end — номера кадров начала и конца анимации
 // once — действие, выванное единожды за одно нажатие клавиши (если зажали кнопку и не отпускаем),
-// например walk вызывается постоянно, пока зажата клавиша, а блок при зажатой клавише
+// например walk вызывается постоянно, пока зажата клавиша, а удар при зажатой клавише
 // вызовется только один раз — чтобы вызвать его еще раз надо отпустить клавишу и снова нажать
+// no_return — значит, мы не возвращаемся в стойку после действия once. Например, мы присели crouch
 const frame_data = {
-    punch_Right: { start: 0, end: 8,
+    punch_Right: {once: true, start: 0, end: 8,
         damage: 01,
         reaction: [{name: "block", chance: "0-50"}, {name: "punch", chance: "50-80"}, {name: "stand", chance: "80-100"}]
     },
-    punch_Left: { start: 9, end: 17,
+    punch_Left: {once: true, start: 9, end: 17,
         damage: 01,
         reaction: [{name: "block", chance: "0-50"}, {name: "punch", chance: "50-80"}, {name: "stand", chance: "80-100"}]
     },
-    block_Right: { start: 18, end: 26, resist: 1, once: false, active: {start:20, end:24},
+    block_Right: { start: 18, end: 26, resist: 1, active: {start:20, end:24},
         reaction: [{name: "punch", chance: "00-80"}, {name: "stand", chance: "80-100"}]
     },
-    block_Left: { start: 27, end: 35, resist: 1 , once: false, active: {start:29, end:33},
+    block_Left: { start: 27, end: 35, resist: 1 , active: {start:29, end:33},
         reaction: [{name: "punch", chance: "00-80"}, {name: "stand", chance: "80-100"}]
     },
-    block_Right_Up: { start: 37, end: 45, resist: 1, once: false, active: {start:39, end:42},
+    block_Right_Up: { start: 37, end: 44, resist: 1, active: {start:39, end:42},
         reaction: [{name: "punch", chance: "00-80"}, {name: "stand", chance: "80-100"}]    
     },
-    block_Left_Up: { start: 46, end: 54, resist: 1, once: false, active: {start:48, end:52},
+    block_Left_Up: { start: 45, end: 54, resist: 1, active: {start:48, end:52},
         reaction: [{name: "punch", chance: "00-80"}, {name: "stand", chance: "80-100"}]    
     },
     stand_Left: { start: 55, end: 60,
@@ -67,20 +68,20 @@ const frame_data = {
     },
     jump_Right: { start: 68, end: 75 },
     jump_Left: { start: 76, end: 83 },
-    crouch_Right: {start: 85, end: 90, resist: 0.2, once: true },
-    crouch_Right_Up: { start: 91, end: 93 , once: true },    
-    crouch_Left: {start: 94, end: 98, resist: 0.2, once: true},
-    crouch_Left_Up: { start: 99, end: 103 , once: true},   
+    crouch_Right: {start: 85, end: 90, resist: 0.2, once: true , no_return: true},
+    crouch_Right_Up: { start: 91, end: 93 , once: true , no_return: true},    
+    crouch_Left: {start: 94, end: 98, resist: 0.2, once: true, no_return: true},
+    crouch_Left_Up: { start: 99, end: 103 , once: true, no_return: true},   
     walk_Right: { start: 146, end: 154,
         reaction: [{name: "walk", chance: "0-50"}, {name: "jumpAsidePunch", chance: "50-60"}, {name: "stand", chance: "60-80"}, {name: "jumpAside", chance: "80-100"}]
     },
     walk_Left: { start: 155, end: 162,
         reaction: [{name: "walk", chance: "0-50"}, {name: "jumpAsidePunch", chance: "50-60"}, {name: "stand", chance: "60-80"}, {name: "jumpAside", chance: "80-100"}]
     },
-    kick_Right_Up: { start: 163, end: 167, damage: 1,
+    kick_Right_Up: { start: 163, end: 167, once: true, damage: 1,
         reaction: [{name: "block", chance: "0-50"}, {name: "punch", chance: "50-80"}, {name: "stand", chance: "80-100"}]
     },
-    kick_Left_Up: { start: 168, end: 172, damage: 1,
+    kick_Left_Up: { start: 168, end: 172, once: true, damage: 1,
         reaction: [{name: "block", chance: "0-50"}, {name: "punch", chance: "50-80"}, {name: "stand", chance: "80-100"}]
     },
     jumpAside_Right: {},
