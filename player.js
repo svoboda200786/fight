@@ -1,9 +1,7 @@
 class Player{
     constructor(w, h, image, dx, type){
-        this.x0 = w / 10;
-        this.y0 = 0;
         this.x = w / 10 + dx;
-        this.y = 0;
+        this.y = canvas.height - frameHeight / 2;
         this.currentFrame = 0;
         this.currentAction = "stand_Right";
         this.speed = 30;
@@ -27,14 +25,22 @@ class Player{
             current: 0,
         }
         this.stunCount = 0; // оглушение, когда соперник бьет критом после накопления яорсти
+        this.coolDown = 0; // кулдаун после обычного действия, например, блока
     }
     update(){
         this.idleCount++;
-        if(this.stunCount && this.stunCount <= 20){
+        if(this.stunCount && this.stunCount <= 30){
             this.stunCount++;            
         }
         else{
             this.stunCount = 0;
+        }
+
+        if(this.coolDown && this.coolDown <= 2){
+            this.coolDown++;            
+        }
+        else{
+            this.coolDown = 0;
         }
 
         const my_action_params = frame_data[this.currentAction];
@@ -125,6 +131,7 @@ class Player{
                     // проверяем совпадение направления по вертиакали ("Up", undefined)
                     if(action_vert_direct == nemesis_action_vert_direct){
                         resist = my_action_params.resist;
+                        this.nemesis.coolDown = 2;
                     }
                 }
                 else{
@@ -153,6 +160,12 @@ class Player{
             if(this.health.current <= 0){
                 this.health.current = 0;
                 game.over = true;
+                if(this.type == "bot"){
+                    game.player_win = true; 
+                }
+                else{
+                    game.bot_win = true;                    
+                }
             }
 
         }
@@ -236,7 +249,7 @@ class Player{
             this.x - frameWidth / 2, this.y - frameHeight / 2, frameWidth, frameHeight);
     }
     doAction(action){
-        if(this.stunCount > 0){
+        if(this.stunCount > 0 || this.coolDown > 0){
             action = "stand" + this.direction;
         }
         // обрываем прыжок, если удар ногой kick            
@@ -289,6 +302,16 @@ class Player{
     punch_Left(){
 
     }
+    walkAway_Left(){
+        // this.doAction("block_Left");         
+        // this.doAction("block_Left");        
+        this.doAction("walk_Right");
+    }
+    walkAway_Right(){
+        // this.doAction("block_Left");         
+        // this.doAction("block_Left");        
+        this.doAction("walk_Left");
+    }    
     walk_Left(){
         if(!this.stopped){
             this.dx = -this.speed;

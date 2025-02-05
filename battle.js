@@ -16,6 +16,8 @@ const canvas = document.querySelector("#gameCanvas");
 const ctx = canvas.getContext('2d');
 
 var game, images, key_down;
+var start_screen_timer = 0;
+var start_screen_delta = 0;
 
 const frameWidth = 224; // Ширина одного кадра
 const frameHeight = 214; // Высота одного кадра
@@ -61,10 +63,10 @@ const frame_data = {
         reaction: [{name: "punch", chance: "00-80"}, {name: "stand", chance: "80-100"}]    
     },
     stand_Left: { start: 55, end: 60,
-        reaction: [{name: "punch", chance: "0-60"}, {name: "kick", chance: "60-80"}, {name: "stand", chance: "80-100"}]
+        reaction: [{name: "punch", chance: "0-60"}, {name: "kick", chance: "60-80"}, {name: "stand", chance: "80-90"}, {name: "walkAway", chance: "90-100"}]
     },
     stand_Right: { start: 61, end: 67,
-        reaction: [{name: "punch", chance: "0-60"}, {name: "kick", chance: "60-80"}, {name: "stand", chance: "80-100"}]
+        reaction: [{name: "punch", chance: "0-60"}, {name: "kick", chance: "60-80"}, {name: "stand", chance: "80-90"}, {name: "walkAway", chance: "90-100"}]
     },
     jump_Right: { start: 68, end: 75 },
     jump_Left: { start: 76, end: 83 },
@@ -87,7 +89,9 @@ const frame_data = {
     jumpAside_Right: {},
     jumpAside_Left: {},
     jumpAsidePunch_Right: {},
-    jumpAsidePunch_Left: {},           
+    jumpAsidePunch_Left: {}, 
+    walkAway_Right: {},
+    walkAway_Left: {},          
 };
 
 const keyToFrame = {
@@ -116,6 +120,8 @@ class Game{
             player: player,
             enemy: new Enemy(canvas.width, canvas.height, images.enemy, 500, "bot"),
         }
+        this.ui = null;
+        this.over = true;
         this.delta = 0;
         this.interval = 3; // скорость обновления канваса
     }
@@ -131,17 +137,40 @@ class Game{
             this.characters[key].update();
         }
 
-        if(game.over){
-            ctx.drawImage(images.over,
-            0, 0,
-            images.over.width, images.over.height,
-            canvas.width / 2 - images.over.width / 2 / 4,
-            canvas.height / 2 - images.over.height / 2 / 4,
-            images.over.width / 4, images.over.height / 4);
+        start_screen_timer += 1;
+        const vs_delay = 20;
+        if(start_screen_timer > vs_delay){
+            start_screen_delta += 20; 
         }
 
-        drawPanel(50, 50, 200, images.avatar, this.player, "Игрок");
-        drawPanel(canvas.width - 250, 50, 200, images.avatar, this.characters.enemy, "Компьютер");        
+        if(!game.over){
+            game.ui.drawUserInfo(50, 50, 200, images.avatar, this.player, "Игрок");
+            game.ui.drawUserInfo(canvas.width - 250, 50, 200, images.avatar, this.characters.enemy, "Компьютер");
+        }
+
+        if(game.over){
+            if(game.bot_win){
+                game.ui.drawGameCaption(images.over);
+            }
+            else if(game.player_win){
+                game.ui.drawGameCaption(images.win);
+            }
+            else{
+
+                if(start_screen_delta > vs_delay){
+                    var text = images.fight;
+                }
+                else{
+                    var text = images.vs;
+                }
+
+                game.ui.drawStartScreen(images.avatar1, images.avatar2, text, start_screen_delta, vs_delay);      
+            }
+            if(start_screen_delta > canvas.width / 2 && !game.start){
+                game.over = false;
+                game.start = true;
+            }
+        }           
     }
 
 
@@ -157,8 +186,6 @@ class Game{
     }
 }
 
-
-
 window.addEventListener("load", async ()=>{
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;  
@@ -171,15 +198,23 @@ window.addEventListener("load", async ()=>{
     images = {
         background: await loaderPicture("./content/background.png"),
         player: await loaderPicture("./content/player.png"),
-        enemy: await loaderPicture("./content/enemy.png"),
-        avatar: await loaderPicture("./content/1.jpg"), 
-        over: await loaderPicture("./content/over.png"),               
+        enemy: await loaderPicture("./content/enemy.png"), 
+        over: await loaderPicture("./content/over.png"),
+        win: await loaderPicture("./content/win.png"), 
+        avatar1: await loaderPicture("./content/startr.png"), 
+        avatar2: await loaderPicture("./content/startl.png"),
+        fight: await loaderPicture("./content/fight.png"), 
+        vs: await loaderPicture("./content/vs.png"),                                     
     }
+
+    canvas.width = images.background.width;
+    canvas.height = images.background.height;
+
     game = new Game(canvas, images);
     game.run(); 
 
-    canvas.width = images.background.width;
-    canvas.height = images.background.height;   
+    game.ui = new UI();
+   
     window.addEventListener('resize', event => { 
         canvas.width = images.background.width;
         canvas.height = images.background.height;

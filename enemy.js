@@ -26,6 +26,10 @@ class Enemy extends  Player{
             if(game.player.stopCount >= count){
                 game.player.stopped = false;
             }
+
+            if(this.stopCount >= count){
+                this.stopped = false;
+            }
         }              
     }
     else{ // вышли из коллизии
