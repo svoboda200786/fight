@@ -3,15 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <title>2D Игра</title>
-    <style>
-        #gameCanvas {
-            border: 1px solid black;
-            background-color: #f0f0f0;
-        }
-    </style>
 </head>
 <body>
-<canvas id="gameCanvas" width="1850" height="850"></canvas>
+<style type="text/css">
+    body{
+        background: black;
+    }
+</style>
+<div class="container">
+    <canvas id="gameCanvas" width="1850" height="850"></canvas>
+    <canvas id="introCanvas" width="1850" height="850"></canvas>
+    <canvas id="textCanvas" width="1850" height="850"></canvas>    
+</div>
+<script src="./frame_data.js"></script>
 <script src="./ui_panel.js"></script>
 <script src="./player.js"></script>
 <script src="./enemy.js"></script>
