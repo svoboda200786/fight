@@ -50,15 +50,14 @@ class Player{
             }
         }
 
-        this.collision_distance = Math.abs(this.potential_nemesis.x - this.x);
+        if(this.potential_nemesis){
+            this.collision_distance = Math.abs(this.potential_nemesis.x - this.x);            
+        }
 
         // переходим в остояние боя, если дистанция меньше определенного значения
         if(this.collision_distance <= 70){                
             if(!this.potential_nemesis.dy && !this.dy){ // Если мы в прыжке, то коллизия не срабатывает
                 this.nemesis = this.potential_nemesis;
-                if(this.type != "bot"){
-                    // console.log(this.stopCount);
-                }
 
                 if(this.stopCount >= 50){
                     this.stopped = false;                 
@@ -67,8 +66,7 @@ class Player{
                     if(!this.stopped){
                         this.stopCount = 1;                        
                     }
-                    this.stopped = true;
-                    // console.log("__________________")                                          
+                    this.stopped = true;                                        
                 }
                 if(this.stopCount > 100){
                     this.stopCount = 1;                     
@@ -111,7 +109,7 @@ class Player{
                     // 71 = x * ( Math.cos( 0 * Math.PI / 2 / 5) + Math.cos( 1 * Math.PI / 2 / 5) + Math.cos( 2 * Math.PI / 2 / 5) )
                     //  x = 71 / 2.7 = 27
                     this.nemesis.dx = 27 * directions[this.nemesis.direction] * -1 * Math.cos( (this.stunCount - 2) * Math.PI / 2 / count)
-                    console.log(this.nemesis.dx, this.stunCount)
+                    // console.log(this.nemesis.dx, this.stunCount)
                 }
 
         }
@@ -143,7 +141,7 @@ class Player{
             }
 
             if(this.nemesis){
-                const nemesis_action_params = frame_data[this.name][this.nemesis.currentAction];
+                const nemesis_action_params = frame_data[this.nemesis.name][this.nemesis.currentAction];
                 if(this.type == "bot"){
                     if(this.nemesis.currentAction.split("_")[0] != "walk"){
                         this.reaction(nemesis_action_params);                
@@ -165,7 +163,9 @@ class Player{
         var key = frame_data[this.name][this.currentAction];
         if(key && this.currentFrame < frame_data[this.name][this.currentAction].end - frame_data[this.name][this.currentAction].start - 1){
             this.currentFrame += this.frameSpeed;
-            if(this.dy){
+            // Если прыжок и нет верхнего удара
+            if(this.dy && this.currentAction.split("_")[0] != "kick"
+                && this.currentAction.split("_")[2] != "Up"){
                 // узнаем номер кадра в прыжке делением текущего значения dy на восьмую часть максимального значения dy.
                 // 8 — число кадров в анимации прыжка
                 this.currentFrame = Math.ceil( this.dy / (Math.PI / 8) );
@@ -189,7 +189,6 @@ class Player{
             if(!key_down || this.type == "bot"){
                 if(this.type != "bot" && !arrow_down || this.type == "bot" && !this.crouch ||
                     this.stunCount > 0){
-                    console.log(1);
                     this.doAction('stand' + this.direction);
                     if(this.type != "bot" && this.nemesis && this.nemesis.crouch){
                         this.nemesis.crouch = false;
@@ -212,15 +211,7 @@ class Player{
                         this.x = canvas.width;
                     }
                 }
-            }
-            // вовращаемся в стойку, если специально не указано иное
-            // и не зажата клавиша "Вниз"
-            // else if(!arrow_down){
-            //     this.currentFrame = 0;
-            //     console.log(2);
-            //     console.log(frame_data[this.name][this.currentAction], this.currentAction);
-            //     this.doAction('stand' + this.direction);
-            // }                
+            }               
         }
         // условие для прыжка
         if(this.dy){
@@ -235,7 +226,6 @@ class Player{
             if(this.dy > Math.PI){
                 this.dy = 0;
                 this.y = canvas.height - this.frameHeight / 2;
-                console.log(3);
                 this.doAction('stand' + this.direction);
                 this.currentFrame = 0;
             }
@@ -255,6 +245,13 @@ class Player{
         && start + this.nemesis.currentFrame > frame_data[this.name][this.nemesis.currentAction].active.start
         && start + this.nemesis.currentFrame < frame_data[this.name][this.nemesis.currentAction].active.end;
         
+            // if(this.type == "bot" && this.nemesis.currentAction == "kick_Right_Up"){
+            //     console.log(nemesis_action_params)
+            //     console.log(this.nemesis.currentFrame, nemesis_action_params.end, nemesis_action_params.start)
+
+            // }
+
+
         if("damage" in nemesis_action_params &&
         (nemesis_action_hor_direct == "Left" && this.nemesis.x > this.x ||
         nemesis_action_hor_direct == "Right" && this.nemesis.x < this.x)
@@ -270,7 +267,7 @@ class Player{
             // if(this.type == "player"){
             //     console.log()            
             // }
-            let damage = nemesis_action_params.damage;
+            let damage = nemesis_action_params.damage * 3;
             // Чем выше урон от противника, тем выше ярость
             const rage_delta = 10 * damage;
             if(condition3 && "resist" in my_action_params){ // если действие содержит resist
@@ -310,13 +307,14 @@ class Player{
                 this.health.current = 0;
                 game.over = true;
                 if(this.type == "bot"){
-                    game.player_win = true; 
+                    player_win++; 
                 }
                 else{
-                    game.bot_win = true;                    
+                    bot_win++;                     
                 }
+                round++;
+                game.checkWin();
             }
-
         }
     }
     draw(){
@@ -343,7 +341,7 @@ class Player{
                     else{
                         this.coolDownArray[action] = 0;                        
                     }
-                    console.log(this.coolDownArray[action], action, this.currentAction)
+                    // console.log(this.coolDownArray[action], action, this.currentAction)
                 }                                
             }            
         }
@@ -362,10 +360,6 @@ class Player{
             // перезаписываем action            
             action = "stand" + this.direction;
         }
-        // обрываем прыжок, если удар ногой kick            
-        if(action == "kick_Right_Up" || action == "kick_Left_Up"){
-            this.dy = 0;
-        }
         if(!this.dy){ // производим удар, только если мы не в прыжке
             // Сложные действия, состоящие из нескольких, вернут флаг true.
             let complicated_action_flag;
@@ -379,6 +373,12 @@ class Player{
             //  Без этого флага будет пытаться названчить в this.currentAction несуществующее действие
             if(frame_data[this.name][action] && !complicated_action_flag){
                 this.currentAction = action; // это в том числе идентификатор для анимации                            
+            }
+        }
+        // если в прыжке, то выполняются только верхние удары (все верхние удары называются kick)
+        else{
+            if(action.split("_")[0] == "kick" && action.split("_")[2] == "Up"){
+                this.currentAction = "kick_Right_Up";
             }
         }
         this.currentFrame = 0;            

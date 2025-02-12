@@ -1,3 +1,4 @@
+
 class UI{
     drawUserInfo(x, y, size, avatar, persone, name, n) {
         const ratio = avatar.width / avatar.height;        
@@ -49,7 +50,10 @@ class UI{
             }
             persone.block_ind = true;
             ctx.drawImage(images.block, x + n + outdent_x1 + 55, y + 17 + 10, 20, 20);             
-        }     
+        } 
+
+        game.time_bar.caption = "Time left: " + String( game.round_time - game.seconds ); 
+
     }
     drawStartScreen(pers_image, bot_image, text_image, n, delay){
         this.clearAll();                    
@@ -103,5 +107,60 @@ class UI{
     clearAll(){
         intro_ctx.clearRect(0,0,canvas.width,canvas.height); 
         text_ctx.clearRect(0,0,canvas.width,canvas.height); 
+    }
+    drawTimeBar(ctx, image, mask, n, scale){
+        ctx.drawImage(image,
+        canvas.width / 2 - image.width / 2 * scale,
+        canvas.height / 2 - image.height / 2 * scale,
+        image.width * scale, image.height * scale);
+
+        if(mask){
+            ctx.globalCompositeOperation="source-out";
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            ctx.fillStyle = "red";            
+            ctx.fillRect(0, 0, canvas.width, canvas.height)            
+        }
+        else{
+            ctx.globalCompositeOperation="source-over";
+        }
+    }
+}
+class Square{
+    constructor(ctx_name, x, y, width, height, background, value) {
+        this.ctx = ctx_name;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.background = background;
+        this.value = value;
+        this.v;
+        this.cap;
+    }   
+    set value(value){
+        this.v = value; 
+    }
+    get value(){
+        return this.v;
+    }
+    set background(background){
+        if (background == "" || background == undefined){
+            // ctx.clearRect(this.x * this.width, this.y * this.height, this.width, this.height);
+        }
+        else{
+            ctx.fillStyle = background;
+            ctx.fillRect(this.x * this.width, this.y * this.height, this.width, this.height);         
+        }
+
+    }       
+}
+class Button extends Square {
+    set caption(caption){
+        this.cap = caption;
+        type(ctx, caption, this.x * this.width, this.y * this.height, this.height / 2, "center", this.width, this.height);
+    }
+    get caption(){
+        return this.cap;
     }
 }
